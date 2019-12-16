@@ -1,0 +1,11 @@
+framework module speech_recognition {
+  umbrella header "speech_recognition-umbrella.h"
+
+  export *
+  module * { export * }
+}
+
+module speech_recognition.Swift {
+    header "speech_recognition-Swift.h"
+    requires objc
+}
