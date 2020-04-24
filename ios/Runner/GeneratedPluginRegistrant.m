@@ -4,10 +4,10 @@
 
 #import "GeneratedPluginRegistrant.h"
 
-#if __has_include(<speech_recognition/SpeechRecognitionPlugin.h>)
-#import <speech_recognition/SpeechRecognitionPlugin.h>
+#if __has_include(<speech_to_text/SpeechToTextPlugin.h>)
+#import <speech_to_text/SpeechToTextPlugin.h>
 #else
-@import speech_recognition;
+@import speech_to_text;
 #endif
 
 #if __has_include(<url_launcher/FLTURLLauncherPlugin.h>)
@@ -16,8 +16,8 @@
 @import url_launcher;
 #endif
 
-#if __has_include(<webview_flutter/WebViewFlutterPlugin.h>)
-#import <webview_flutter/WebViewFlutterPlugin.h>
+#if __has_include(<webview_flutter/FLTWebViewFlutterPlugin.h>)
+#import <webview_flutter/FLTWebViewFlutterPlugin.h>
 #else
 @import webview_flutter;
 #endif
@@ -25,7 +25,7 @@
 @implementation GeneratedPluginRegistrant
 
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
-  [SpeechRecognitionPlugin registerWithRegistrar:[registry registrarForPlugin:@"SpeechRecognitionPlugin"]];
+  [SpeechToTextPlugin registerWithRegistrar:[registry registrarForPlugin:@"SpeechToTextPlugin"]];
   [FLTURLLauncherPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTURLLauncherPlugin"]];
   [FLTWebViewFlutterPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTWebViewFlutterPlugin"]];
 }
