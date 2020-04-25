@@ -6,6 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart';
 import 'notes.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
+import 'package:screen/screen.dart';
 
 void main() => runApp(MyApp());
 
@@ -28,6 +29,7 @@ class _VoiceHomeState extends State<VoiceHome> {
   bool _isAvailable = false;
   double _level = 0.0;
   String _resultText = "";
+  String _lastWords = '';
   bool _isListening = false;
 
   double _progressValue = 0.0;
@@ -38,11 +40,13 @@ class _VoiceHomeState extends State<VoiceHome> {
     super.initState();
     initSpeechRecognizer();
     _updateProgress();
+    Screen.keepOn(true);
+
   }
 
   void _updateProgress() {
     const oneSec = const Duration(seconds: 1);
-    new Timer.periodic(oneSec, (Timer t) {
+    Timer.periodic(oneSec, (Timer t) {
       setState(() {
         _progressValue += 0.25;
         // we "finish" downloading here
@@ -67,17 +71,17 @@ class _VoiceHomeState extends State<VoiceHome> {
 
   void startListening() {
     var currentLocaleId = 'en_US';
-    _resultText = "";
     _speechRecognition.listen(
         onResult: resultListener,
         listenFor: Duration(seconds: 10),
         localeId: currentLocaleId,
         onSoundLevelChange: soundLevelListener,
         cancelOnError: true,
-        partialResults: true);
+        partialResults: false);
   }
 
   void stopListening() {
+    print('stop');
     _speechRecognition.stop();
     setState(() {
       _level = 0.0;
@@ -89,12 +93,15 @@ class _VoiceHomeState extends State<VoiceHome> {
     _speechRecognition.cancel();
     setState(() {
       _level = 0.0;
+      _isListening = false;
     });
   }
 
   void resultListener(SpeechRecognitionResult result) {
     setState(() {
-      _resultText = "${result.recognizedWords} - ${result.finalResult}";
+      if (_resultText.length > 6)
+        _resultText = _resultText.substring(0, _resultText.length - 6) + '. ';
+      _resultText += "${result.recognizedWords} - ${result.finalResult}";
     });
   }
 
@@ -118,10 +125,11 @@ class _VoiceHomeState extends State<VoiceHome> {
 
   void continueListening() {
     const oneSec = const Duration(seconds: 1);
-    var timer = new Timer.periodic(oneSec, (Timer timer) {
+    Timer.periodic(oneSec, (Timer t) {
       if (_isListening) {
         startListening();
-      }
+      }else
+        t.cancel();
     });
   }
 
@@ -143,9 +151,41 @@ class _VoiceHomeState extends State<VoiceHome> {
       position: DecorationPosition.background,
       decoration: BoxDecoration(
         image: DecorationImage(
-            image: AssetImage('assets/green_dust_scratch.png'), fit: BoxFit.cover),
+            image: AssetImage('assets/green_dust_scratch.png'),
+            fit: BoxFit.cover),
       ),
-     child: Container(
+      child: _loading
+          ? Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                      flex: 8,
+                      child: Tab(
+                          icon: Image.asset("assets/notespeak_logo.jpg"),
+                          iconMargin: EdgeInsets.only(
+                              left: width, right: width, top: height),
+                          text: "Notespeak")),
+                  Expanded(flex: 1, child: Text('loading...')),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                        margin: EdgeInsets.only(bottom: height / 2),
+                        padding: EdgeInsets.only(left: width, right: width),
+                        child: LinearProgressIndicator(
+                          value: _progressValue,
+                        )),
+                  ),
+                  Expanded(
+                      flex: 1,
+                      child: Container(
+                          alignment: Alignment.topCenter,
+                          child: Text('${(_progressValue * 100).round()}%'))),
+                ],
+              ),
+            )
+          : Container(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -167,7 +207,9 @@ class _VoiceHomeState extends State<VoiceHome> {
                       ),
                       child: new SingleChildScrollView(
                         child: Text(
-                          _resultText,
+                          _resultText.length != 0
+                              ? _resultText.substring(0, _resultText.length - 6)
+                              : _resultText,
                           style: TextStyle(fontSize: 24.0),
                         ),
                       ),
@@ -181,23 +223,35 @@ class _VoiceHomeState extends State<VoiceHome> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: <Widget>[
-//                  FloatingActionButton(
-//                    heroTag: "btn2",
-//                    child: Icon(Icons.cancel),
-//                    mini: true,
-//                    backgroundColor: Colors.deepOrange,
-//                    onPressed: _speechRecognition.isListening ? cancelListening : null
-//                  ),
-                          FloatingActionButton(
-                            heroTag: "btn1",
-                            child: Icon(Icons.mic),
-                            onPressed: () {
-                              if (_isAvailable &&
-                                  !_speechRecognition.isListening)
-                                startListening();
-                              continueListening();
-                            },
-                            backgroundColor: Colors.pink,
+                          Container(
+                            width: 40,
+                            height: 40,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              boxShadow: [
+                                BoxShadow(
+                                    blurRadius: .26,
+                                    spreadRadius: _level * 1.5,
+                                    color: Colors.black.withOpacity(.5))
+                              ],
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: FloatingActionButton(
+                              heroTag: "btn1",
+                              child: Icon(Icons.mic),
+                              onPressed: () {
+                                setState(() {
+                                  _isListening = true;
+                                  _resultText = '';
+                                });
+                                if (_isAvailable &&
+                                    !_speechRecognition.isListening)
+                                  startListening();
+                                continueListening();
+                              },
+                              backgroundColor: Colors.pink,
+                            ),
                           ),
                           FloatingActionButton(
                             heroTag: "btn2",
@@ -210,14 +264,19 @@ class _VoiceHomeState extends State<VoiceHome> {
                           ),
                           RaisedButton(
                             onPressed: () {
-                              _speechRecognition.isListening
-                                  ? cancelListening
-                                  : null;
+                              Screen.keepOn(false);
+
+                              if (_speechRecognition.isListening || _isListening) {
+
+                                cancelListening();
+                              }
+
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                        NotesHome(_resultText)),
+                                        NotesHome(_resultText.substring(0,_resultText.length-6))),
                               );
                             },
                             child: const Text('Generate Notes',
