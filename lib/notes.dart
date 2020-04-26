@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:share/share.dart';
+import 'package:intl/intl.dart';
 
 class NotesHome extends StatefulWidget {
-
   String text;
   NotesHome(this.text);
 
@@ -12,17 +13,17 @@ class NotesHome extends StatefulWidget {
 }
 
 class _NotesHomeState extends State<NotesHome> {
-
   Completer<WebViewController> _controller = Completer<WebViewController>();
-  final Set<String> _favorites = Set<String>();
+//  final Set<String> _favorites = Set<String>();
   String url = "https://www.google.com/";
+  String subject = '';
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 //    url = "http://yusun.io/";
-    url = "https://andy-ma-project.herokuapp.com/process/" + widget.text.replaceAll(" ", "%20");
+    url = "https://andy-ma-project.herokuapp.com/process/" +
+        widget.text.replaceAll(" ", "%20");
   }
 
   @override
@@ -42,8 +43,23 @@ class _NotesHomeState extends State<NotesHome> {
           _controller.complete(webViewController);
         },
       ),
+
+//      floatingActionButton: _bookmarkButton(),
+
       floatingActionButton: _bookmarkButton(),
     );
+  }
+
+  _share(String url) {
+    final RenderBox box = context.findRenderObject();
+    Share.share(url,
+        subject: _getDate(),
+        sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size);
+  }
+
+  _getDate() {
+    var now = DateTime.now();
+    return DateFormat('dd-MM-yyyy HH: mm').format(now);
   }
 
   _bookmarkButton() {
@@ -54,13 +70,9 @@ class _NotesHomeState extends State<NotesHome> {
         if (controller.hasData) {
           return FloatingActionButton(
             onPressed: () async {
-              var url = await controller.data.currentUrl();
-              _favorites.add(url);
-              Scaffold.of(context).showSnackBar(
-                SnackBar(content: Text('Saved $url for later reading.')),
-              );
+              await controller.data.currentUrl().then((value) => _share(value));
             },
-            child: Icon(Icons.favorite),
+            child: Icon(Icons.share),
           );
         }
         return Container();
