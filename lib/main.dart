@@ -184,6 +184,7 @@ class _VoiceHomeState extends State<VoiceHome> {
                         child: Text(
                           _resultText,
                           style: TextStyle(fontSize: 24.0),
+                          maxLines: null,
                         ),
                       ),
                     ),
