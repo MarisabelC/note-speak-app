@@ -17,6 +17,7 @@ class _NotesHomeState extends State<NotesHome> {
 //  final Set<String> _favorites = Set<String>();
   String url = "https://www.google.com/";
   String subject = '';
+  var position=1;
 
   @override
   void initState() {
@@ -37,11 +38,26 @@ class _NotesHomeState extends State<NotesHome> {
 //          Menu(_controller.future, () => _favorites),
 //        ],
       ),
-      body: WebView(
-        initialUrl: url,
-        onWebViewCreated: (WebViewController webViewController) {
-          _controller.complete(webViewController);
-        },
+      body: IndexedStack(
+        index: position,
+        children: <Widget>[
+          WebView(
+            initialUrl: url,
+            onWebViewCreated: (WebViewController webViewController) {
+              _controller.complete(webViewController);
+            },
+            onPageFinished: _doneLoading,
+          ),
+          Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                  image: AssetImage('assets/background.png'), fit: BoxFit.cover),
+            ),
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          )
+        ],
       ),
 
 //      floatingActionButton: _bookmarkButton(),
@@ -79,4 +95,11 @@ class _NotesHomeState extends State<NotesHome> {
       },
     );
   }
+
+  _doneLoading(String value){
+    setState(() {
+      position = 0;
+    });
+  }
+
 }
