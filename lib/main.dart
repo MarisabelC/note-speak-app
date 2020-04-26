@@ -228,6 +228,7 @@ class _VoiceHomeState extends State<VoiceHome> {
                               Icons.create,
                             ),
                             onPressed: () {
+                              Screen.keepOn(false);
                               if (_isListening) {
                                 _speechRecognition.cancel().then(
                                       (result) => setState(() {
